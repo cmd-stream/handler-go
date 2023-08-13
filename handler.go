@@ -14,10 +14,11 @@ func New[T any](conf Conf, invoker Invoker[T]) *Handler[T] {
 	return &Handler[T]{conf, invoker}
 }
 
-// Handler is an implementation of the delegate.ServerTransportHandler.
+// Handler is an implementation of the delegate.ServerTransportHandler
+// interface.
 //
 // Sequentially receives commands and executes each of them in a separate
-// gorountine using an Invoker.
+// gorountine using Invoker.
 //
 // On any error it closes the transport.
 type Handler[T any] struct {
