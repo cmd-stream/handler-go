@@ -2,7 +2,6 @@ package mock
 
 import (
 	"context"
-	"reflect"
 	"time"
 
 	"github.com/cmd-stream/base-go"
@@ -37,25 +36,8 @@ func (mock Invoker[T]) Invoke(ctx context.Context, at time.Time, seq base.Seq,
 	cmd base.Cmd[T],
 	proxy base.Proxy,
 ) (err error) {
-	var ctxVal reflect.Value
-	if ctx == nil {
-		ctxVal = reflect.Zero(reflect.TypeOf((*context.Context)(nil)).Elem())
-	} else {
-		ctxVal = reflect.ValueOf(ctx)
-	}
-	var cmdVal reflect.Value
-	if cmd == nil {
-		cmdVal = reflect.Zero(reflect.TypeOf((*base.Cmd[any])(nil)).Elem())
-	} else {
-		cmdVal = reflect.ValueOf(cmd)
-	}
-	var proxyVal reflect.Value
-	if proxy == nil {
-		proxyVal = reflect.Zero(reflect.TypeOf((*base.Proxy)(nil))).Elem()
-	} else {
-		proxyVal = reflect.ValueOf(proxy)
-	}
-	vals, err := mock.Call("Invoke", ctxVal, at, seq, cmdVal, proxyVal)
+	vals, err := mock.Call("Invoke", mok.SafeVal[context.Context](ctx), at, seq,
+		mok.SafeVal[base.Cmd[T]](cmd), mok.SafeVal[base.Proxy](proxy))
 	if err != nil {
 		panic(err)
 	}
