@@ -1,9 +1,7 @@
-github.com/cmd-stream/base-go v0.0.0-20240428104458-99caa236f969 h1:uQOfPheinM5Z4TyRoCTsl+0wRX80qS2WwpZTumL4MDo=
-github.com/cmd-stream/base-go v0.0.0-20240428104458-99caa236f969/go.mod h1:TGNARVuDSdpKjcnmwMEHuXFKBXw+82CO3MdWbnuWrIs=
-github.com/cmd-stream/delegate-go v0.0.0-20240702232359-39203f4a3d3f h1:tKqva3g+n6PKQDmP391qicj8jOsHqRU7Z5uR/o3R6Y0=
-github.com/cmd-stream/delegate-go v0.0.0-20240702232359-39203f4a3d3f/go.mod h1:wCrPKHxWYHiWDX/TyceJ/w3ErgCoeBtdCptdiZr3IT8=
-github.com/cmd-stream/delegate-go v0.0.0-20240704164829-ecea8829feee h1:75feoUeo9Sh+2akHql0VsB8ywDsaYl/w8tUYV83LuiA=
-github.com/cmd-stream/delegate-go v0.0.0-20240704164829-ecea8829feee/go.mod h1:nEkshSbZUqS0S250e0HdCztrBgt1D8GULpTyHz4o0JM=
+github.com/cmd-stream/base-go v0.0.0-20241126232756-979c1388a1d8 h1:va6v0aBuiFGDBDcyJXDVN5h3yPnLCoAOG/9AMPlsF8k=
+github.com/cmd-stream/base-go v0.0.0-20241126232756-979c1388a1d8/go.mod h1:TGNARVuDSdpKjcnmwMEHuXFKBXw+82CO3MdWbnuWrIs=
+github.com/cmd-stream/delegate-go v0.0.0-20241126233520-6337eaaef0fe h1:CKTqMGOHVilO9lhiEvobBVnYrG5MHgLHf1IeYHFgwcA=
+github.com/cmd-stream/delegate-go v0.0.0-20241126233520-6337eaaef0fe/go.mod h1:EVbTkXLR4me7Famr3W3auX9DvxZaBE/bV/UVj3IdiPU=
 github.com/mus-format/common-go v0.0.0-20240704141923-ea7d12c7eed3 h1:lq6NjZLxX27LghMjyTAZvt3c7Hi82VbhSuyTw3iYIDU=
 github.com/mus-format/common-go v0.0.0-20240704141923-ea7d12c7eed3/go.mod h1:1hTb8w0YdSGIOU6wNY+e9uXnDZ9OQnUivNtd8cPSdoU=
 github.com/mus-format/mus-stream-go v0.4.1 h1:E6eD2lTDJzLKYhbf2yL0XZ09o02mKK38D4X8dMu3dV8=
