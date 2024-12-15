@@ -2,12 +2,13 @@ package handler
 
 import "time"
 
-// Conf is a configuration of Handler.
+// Conf is a configuration of the Handler.
 //
-// If Handler has not received any commands during the ReceiveTimeout, the
-// corresponding connection will be closed, if == 0 waits forever.
-// If At == true, Handler will call Invoker.Invoke() with the command receive
-// time.
+// If the Handler does not receive any commands during ReceiveTimeout, the
+// corresponding connection will be closed. A timeout value of 0 means it will
+// wait indefinitely.
+// If At is set to true, the Handler will call Invoker.Invoke() with the
+// command's reception time.
 type Conf struct {
 	ReceiveTimeout time.Duration
 	At             bool

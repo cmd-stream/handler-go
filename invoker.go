@@ -9,7 +9,7 @@ import (
 
 // Invoker executes commands.
 //
-// At parameter defines (if Conf.At == true) the command receive time.
+// At parameter defines (if Conf.At == true) the command reception time.
 type Invoker[T any] interface {
 	Invoke(ctx context.Context, at time.Time, seq base.Seq, cmd base.Cmd[T],
 		proxy base.Proxy) error

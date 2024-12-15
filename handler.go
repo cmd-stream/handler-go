@@ -17,7 +17,7 @@ func New[T any](conf Conf, invoker Invoker[T]) *Handler[T] {
 // Handler is an implementation of the delegate.ServerTransportHandler
 // interface.
 //
-// Sequentially receives commands and executes each of them in a separate
+// It sequentially receives commands and executes each of them in a separate
 // gorountine using Invoker.
 //
 // On any error it closes the transport.
