@@ -9,6 +9,3 @@ server.
 
 It contains an implementation of the `delegate.ServerTransportHandler` 
 interface, which executes each command in its own gorountine using `Invoker`.
-
-# Tests
-Test coverage is about 96%.
