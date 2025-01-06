@@ -41,10 +41,11 @@ func (p Proxy[T]) SendWithDeadline(deadline time.Time, seq base.Seq,
 		return
 	}
 	err = p.transport.Send(seq, result)
-	p.mu.Unlock()
 	if err != nil {
+		p.mu.Unlock()
 		return
 	}
+	p.mu.Unlock()
 	return p.flush()
 }
 
