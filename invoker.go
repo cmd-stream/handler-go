@@ -7,9 +7,13 @@ import (
 	"github.com/cmd-stream/base-go"
 )
 
-// Invoker executes commands.
+// Invoker is used by the server to execute Commands.
 //
-// At parameter defines (if Conf.At == true) the command reception time.
+// A single Invoker instance is shared by all Workers (each Worker handles one
+// client connection at a time), so it must be thread-safe.
+//
+// Invoke method can serve as a central point to handle operations that are
+// common across multiple Commands, such as logging.
 type Invoker[T any] interface {
 	Invoke(ctx context.Context, at time.Time, seq base.Seq, cmd base.Cmd[T],
 		proxy base.Proxy) error

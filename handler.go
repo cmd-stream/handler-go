@@ -14,13 +14,13 @@ func New[T any](conf Conf, invoker Invoker[T]) *Handler[T] {
 	return &Handler[T]{conf, invoker}
 }
 
-// Handler is an implementation of the delegate.ServerTransportHandler
-// interface.
+// Handler implements the delegate.ServerTransportHandler interface.
 //
-// It sequentially receives commands and executes each of them in a separate
-// gorountine using Invoker.
+// It receives Commands sequentially and executes each one in a separate
+// goroutine using the Invoker. This allows for concurrent execution of
+// Commands.
 //
-// On any error it closes the transport.
+// In case of any error, the Handler will close the transport connection.
 type Handler[T any] struct {
 	conf    Conf
 	invoker Invoker[T]
@@ -65,8 +65,8 @@ func receiveCmdAndInvoke[T any](ctx context.Context, conf Conf,
 		proxy = NewProxy[T](transport)
 	)
 	for {
-		if conf.ReceiveTimeout != 0 {
-			deadline := time.Now().Add(conf.ReceiveTimeout)
+		if conf.CmdReceiveTimeout != 0 {
+			deadline := time.Now().Add(conf.CmdReceiveTimeout)
 			if err = transport.SetReceiveDeadline(deadline); err != nil {
 				queueErr(err, errs)
 				wg.Done()
