@@ -65,8 +65,8 @@ func receiveCmdAndInvoke[T any](ctx context.Context, conf Conf,
 		proxy = NewProxy[T](transport)
 	)
 	for {
-		if conf.CmdReceiveTimeout != 0 {
-			deadline := time.Now().Add(conf.CmdReceiveTimeout)
+		if conf.CmdReceiveDuration != 0 {
+			deadline := time.Now().Add(conf.CmdReceiveDuration)
 			if err = transport.SetReceiveDeadline(deadline); err != nil {
 				queueErr(err, errs)
 				wg.Done()

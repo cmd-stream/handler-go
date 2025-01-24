@@ -22,7 +22,7 @@ func TestHandler(t *testing.T) {
 	t.Run("Handler should be able to handle several cmds and close when ctx done", func(t *testing.T) {
 		var (
 			ctx, cancel = context.WithCancel(context.Background())
-			conf        = Conf{CmdReceiveTimeout: time.Second}
+			conf        = Conf{CmdReceiveDuration: time.Second}
 
 			wantErr          = context.Canceled
 			seq1    base.Seq = 1
@@ -37,7 +37,7 @@ func TestHandler(t *testing.T) {
 				done := make(chan struct{})
 				transport = dmock.NewServerTransport().RegisterNSetReceiveDeadline(3,
 					func(deadline time.Time) (err error) {
-						wantDeadline := starTime.Add(conf.CmdReceiveTimeout)
+						wantDeadline := starTime.Add(conf.CmdReceiveDuration)
 						if !SameTime(deadline, wantDeadline) {
 							err = fmt.Errorf("Transport.Receive(), unepxected deadline, want '%v' actual '%v'",
 								deadline,
@@ -104,7 +104,7 @@ func TestHandler(t *testing.T) {
 				).RegisterClose(
 					func() (err error) { return nil },
 				)
-				handler = Handler[any]{Conf{CmdReceiveTimeout: time.Second}, nil}
+				handler = Handler[any]{Conf{CmdReceiveDuration: time.Second}, nil}
 				mocks   = []*mok.Mock{transport.Mock}
 			)
 			defer cancel()
@@ -220,7 +220,7 @@ func TestHandler(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				conf = Conf{
-					CmdReceiveTimeout: time.Second,
+					CmdReceiveDuration: time.Second,
 				}
 				ctx, cancel = context.WithCancel(context.Background())
 				wantErr     = context.Canceled
