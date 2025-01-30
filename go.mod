@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/cmd-stream/base-go v0.0.0-20250126204318-04ae7366853d
-	github.com/cmd-stream/delegate-go v0.0.0-20250126204609-5ecb95bdd8e3
+	github.com/cmd-stream/delegate-go v0.0.0-20250130202943-5a16b3074403
 	github.com/ymz-ncnk/mok v0.2.0
 )
 
