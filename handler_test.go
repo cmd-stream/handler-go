@@ -11,7 +11,7 @@ import (
 	"github.com/cmd-stream/base-go"
 	bmock "github.com/cmd-stream/base-go/testdata/mock"
 	dmock "github.com/cmd-stream/delegate-go/testdata/mock"
-	"github.com/cmd-stream/handler-go/testdata/mock"
+	hmock "github.com/cmd-stream/handler-go/testdata/mock"
 	"github.com/ymz-ncnk/mok"
 )
 
@@ -20,9 +20,10 @@ const Delta = 100 * time.Millisecond
 func TestHandler(t *testing.T) {
 
 	t.Run("Handler should be able to handle several cmds and close when ctx done", func(t *testing.T) {
+		var ()
 		var (
-			ctx, cancel = context.WithCancel(context.Background())
-			conf        = Conf{CmdReceiveDuration: time.Second}
+			ctx, cancel            = context.WithCancel(context.Background())
+			wantCmdReceiveDuration = time.Second
 
 			wantErr          = context.Canceled
 			seq1    base.Seq = 1
@@ -32,43 +33,39 @@ func TestHandler(t *testing.T) {
 			cmd2 = bmock.NewCmd()
 			cmds = map[bmock.Cmd]struct{}{cmd1: {}, cmd2: {}}
 
+			done      = make(chan struct{})
 			starTime  = time.Now()
-			transport = func() (transport dmock.ServerTransport) {
-				done := make(chan struct{})
-				transport = dmock.NewServerTransport().RegisterNSetReceiveDeadline(3,
-					func(deadline time.Time) (err error) {
-						wantDeadline := starTime.Add(conf.CmdReceiveDuration)
-						if !SameTime(deadline, wantDeadline) {
-							err = fmt.Errorf("Transport.Receive(), unepxected deadline, want '%v' actual '%v'",
-								deadline,
-								wantDeadline)
-						}
-						return
-					},
-				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], err error) {
-						return seq1, cmd1, nil
-					},
-				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], err error) {
-						return seq2, cmd2, nil
-					},
-				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], err error) {
-						<-done
-						err = errors.New("transport closed")
-						return
-					},
-				).RegisterClose(
-					func() (err error) {
-						defer close(done)
-						return nil
-					},
-				)
-				return
-			}()
-
-			invoker = mock.NewInvoker[any]().RegisterInvoke(
+			transport = dmock.NewServerTransport().RegisterNSetReceiveDeadline(3,
+				func(deadline time.Time) (err error) {
+					wantDeadline := starTime.Add(wantCmdReceiveDuration)
+					if !SameTime(deadline, wantDeadline) {
+						err = fmt.Errorf("Transport.Receive(), unepxected deadline, want '%v' actual '%v'",
+							deadline,
+							wantDeadline)
+					}
+					return
+				},
+			).RegisterReceive(
+				func() (seq base.Seq, cmd base.Cmd[any], err error) {
+					return seq1, cmd1, nil
+				},
+			).RegisterReceive(
+				func() (seq base.Seq, cmd base.Cmd[any], err error) {
+					return seq2, cmd2, nil
+				},
+			).RegisterReceive(
+				func() (seq base.Seq, cmd base.Cmd[any], err error) {
+					<-done
+					err = errors.New("transport closed")
+					return
+				},
+			).RegisterClose(
+				func() (err error) {
+					defer close(done)
+					return nil
+				},
+			)
+			invoker = hmock.NewInvoker[any]().RegisterInvoke(
 				func(ctx context.Context, at time.Time, seq base.Seq, cmd base.Cmd[any],
 					proxy base.Proxy) (err error) {
 					delete(cmds, cmd.(bmock.Cmd))
@@ -81,7 +78,7 @@ func TestHandler(t *testing.T) {
 					return nil
 				},
 			)
-			handler = Handler[any]{conf, invoker}
+			handler = New[any](invoker, WithCmdReceiveDuration(wantCmdReceiveDuration))
 			mocks   = []*mok.Mock{cmd1.Mock, cmd2.Mock, transport.Mock, invoker.Mock}
 		)
 		go func() {
@@ -104,7 +101,7 @@ func TestHandler(t *testing.T) {
 				).RegisterClose(
 					func() (err error) { return nil },
 				)
-				handler = Handler[any]{Conf{CmdReceiveDuration: time.Second}, nil}
+				handler = New[any](nil, WithCmdReceiveDuration(time.Second))
 				mocks   = []*mok.Mock{transport.Mock}
 			)
 			defer cancel()
@@ -124,7 +121,7 @@ func TestHandler(t *testing.T) {
 				).RegisterClose(
 					func() (err error) { return nil },
 				)
-				handler = Handler[any]{Conf{}, nil}
+				handler = New[any](nil)
 				mocks   = []*mok.Mock{transport.Mock}
 			)
 			defer cancel()
@@ -135,32 +132,29 @@ func TestHandler(t *testing.T) {
 		func(t *testing.T) {
 			var (
 				wantErr   = errors.New("Invoker.Invoke error")
-				transport = func() (transport dmock.ServerTransport) {
-					done := make(chan struct{})
-					transport = dmock.NewServerTransport().RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) {
-							return 1, bmock.NewCmd(), nil
-						},
-					).RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) {
-							<-done
-							return 0, nil, errors.New("transport closed")
-						},
-					).RegisterClose(
-						func() (err error) {
-							defer close(done)
-							return nil
-						},
-					)
-					return
-				}()
-				invoker = mock.NewInvoker[any]().RegisterInvoke(
+				done      = make(chan struct{})
+				transport = dmock.NewServerTransport().RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) {
+						return 1, bmock.NewCmd(), nil
+					},
+				).RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) {
+						<-done
+						return 0, nil, errors.New("transport closed")
+					},
+				).RegisterClose(
+					func() (err error) {
+						defer close(done)
+						return nil
+					},
+				)
+				invoker = hmock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, at time.Time, seq base.Seq,
 						cmd base.Cmd[any], proxy base.Proxy) (err error) {
 						return wantErr
 					},
 				)
-				handler = Handler[any]{Conf{}, invoker}
+				handler = New[any](invoker)
 				mocks   = []*mok.Mock{transport.Mock, invoker.Mock}
 			)
 			testHandler(context.Background(), handler, transport, wantErr, mocks, t)
@@ -172,29 +166,26 @@ func TestHandler(t *testing.T) {
 				ctx, cancel = context.WithCancel(context.Background())
 				wantAt      time.Time
 				mu          sync.Mutex
-				transport   = func() (transport dmock.ServerTransport) {
-					done := make(chan struct{})
-					transport = dmock.NewServerTransport().RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) {
-							mu.Lock()
-							wantAt = time.Now()
-							mu.Unlock()
-							return 1, bmock.NewCmd(), nil
-						},
-					).RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) {
-							<-done
-							return 0, nil, errors.New("transport closed")
-						},
-					).RegisterClose(
-						func() (err error) {
-							defer close(done)
-							return nil
-						},
-					)
-					return
-				}()
-				invoker = mock.NewInvoker[any]().RegisterInvoke(
+				done        = make(chan struct{})
+				transport   = dmock.NewServerTransport().RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) {
+						mu.Lock()
+						wantAt = time.Now()
+						mu.Unlock()
+						return 1, bmock.NewCmd(), nil
+					},
+				).RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) {
+						<-done
+						return 0, nil, errors.New("transport closed")
+					},
+				).RegisterClose(
+					func() (err error) {
+						defer close(done)
+						return nil
+					},
+				)
+				invoker = hmock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, at time.Time, seq base.Seq,
 						cmd base.Cmd[any], proxy base.Proxy) (err error) {
 						defer cancel()
@@ -208,7 +199,7 @@ func TestHandler(t *testing.T) {
 						return
 					},
 				)
-				handler = Handler[any]{Conf{At: true}, invoker}
+				handler = New[any](invoker, WithAt())
 				mocks   = []*mok.Mock{transport.Mock, invoker.Mock}
 			)
 
@@ -219,38 +210,32 @@ func TestHandler(t *testing.T) {
 	t.Run("We should be able to interupt Handler, while it invoke a Command and is locked on ctx",
 		func(t *testing.T) {
 			var (
-				conf = Conf{
-					CmdReceiveDuration: time.Second,
-				}
 				ctx, cancel = context.WithCancel(context.Background())
 				wantErr     = context.Canceled
 				cmd         = bmock.NewCmd()
-				transport   = func() (transport dmock.ServerTransport) {
-					done := make(chan struct{})
-					transport = dmock.NewServerTransport().RegisterNSetReceiveDeadline(2,
-						func(deadline time.Time) (err error) { return nil },
-					).RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) { return 1, cmd, nil },
-					).RegisterReceive(
-						func() (seq base.Seq, cmd base.Cmd[any], err error) {
-							<-done
-							return 0, nil, errors.New("transport closed")
-						},
-					).RegisterClose(
-						func() (err error) {
-							defer close(done)
-							return
-						},
-					)
-					return
-				}()
-				invoker = mock.NewInvoker[any]().RegisterInvoke(
+				done        = make(chan struct{})
+				transport   = dmock.NewServerTransport().RegisterNSetReceiveDeadline(2,
+					func(deadline time.Time) (err error) { return nil },
+				).RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) { return 1, cmd, nil },
+				).RegisterReceive(
+					func() (seq base.Seq, cmd base.Cmd[any], err error) {
+						<-done
+						return 0, nil, errors.New("transport closed")
+					},
+				).RegisterClose(
+					func() (err error) {
+						defer close(done)
+						return
+					},
+				)
+				invoker = hmock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, at time.Time, seq base.Seq, cmd base.Cmd[any], proxy base.Proxy) (err error) {
 						<-ctx.Done()
 						return context.Canceled
 					},
 				)
-				handler = Handler[any]{conf, invoker}
+				handler = New[any](invoker, WithCmdReceiveDuration(time.Second))
 				mocks   = []*mok.Mock{cmd.Mock, transport.Mock, invoker.Mock}
 			)
 			go func() {
@@ -266,7 +251,7 @@ func SameTime(t1, t2 time.Time) bool {
 	return !(t1.Before(t2.Truncate(Delta)) || t1.After(t2.Add(Delta)))
 }
 
-func testHandler(ctx context.Context, handler Handler[any],
+func testHandler(ctx context.Context, handler *Handler[any],
 	transport dmock.ServerTransport,
 	wantErr error,
 	mocks []*mok.Mock,

@@ -1,15 +1,17 @@
 module github.com/cmd-stream/handler-go
 
-go 1.20
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
-	github.com/cmd-stream/base-go v0.0.0-20250126204318-04ae7366853d
-	github.com/cmd-stream/delegate-go v0.0.0-20250130202943-5a16b3074403
+	github.com/cmd-stream/base-go v0.0.0-20250325143652-da24f04b9776
+	github.com/cmd-stream/delegate-go v0.0.0-20250325155117-c8b5318a2ed4
 	github.com/ymz-ncnk/mok v0.2.0
 )
 
 require (
-	github.com/mus-format/common-go v0.0.0-20240704141923-ea7d12c7eed3 // indirect
-	github.com/mus-format/mus-stream-go v0.4.3 // indirect
-	golang.org/x/exp v0.0.0-20230728194245-b0cb94b80691 // indirect
+	github.com/mus-format/common-go v0.0.0-20250307125743-867bbd6eb59c // indirect
+	github.com/mus-format/mus-stream-go v0.6.2 // indirect
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 )

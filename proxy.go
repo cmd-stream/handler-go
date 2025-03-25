@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"net"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -15,11 +16,19 @@ func NewProxy[T any](transport delegate.ServerTransport[T]) Proxy[T] {
 	return Proxy[T]{transport, &flushFlag, &sync.Mutex{}}
 }
 
-// Proxy is an implementation of the base.Proxy interface.
+// Proxy implemets the base.Proxy interface.
 type Proxy[T any] struct {
 	transport delegate.ServerTransport[T]
 	flushFlag *uint32
 	mu        *sync.Mutex
+}
+
+func (p Proxy[T]) LocalAddr() net.Addr {
+	return p.transport.LocalAddr()
+}
+
+func (p Proxy[T]) RemoteAddr() net.Addr {
+	return p.transport.RemoteAddr()
 }
 
 func (p Proxy[T]) Send(seq base.Seq, result base.Result) (err error) {

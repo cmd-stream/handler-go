@@ -10,20 +10,21 @@ import (
 )
 
 // New creates a new Handler.
-func New[T any](conf Conf, invoker Invoker[T]) *Handler[T] {
-	return &Handler[T]{conf, invoker}
+func New[T any](invoker Invoker[T], ops ...SetOption) *Handler[T] {
+	h := Handler[T]{invoker: invoker}
+	Apply(ops, &h.options)
+	return &h
 }
 
 // Handler implements the delegate.ServerTransportHandler interface.
 //
-// It receives Commands sequentially and executes each one in a separate
-// goroutine using the Invoker. This allows for concurrent execution of
-// Commands.
+// It receives Commands sequentially and executes each in a separate goroutine
+// using the Invoker.
 //
-// In case of any error, the Handler will close the transport connection.
+// If an error occurs, the Handler closes the transport connection.
 type Handler[T any] struct {
-	conf    Conf
 	invoker Invoker[T]
+	options Options
 }
 
 func (h *Handler[T]) Handle(ctx context.Context,
@@ -34,7 +35,7 @@ func (h *Handler[T]) Handle(ctx context.Context,
 		errs           = make(chan error, 1)
 	)
 	wg.Add(1)
-	go receiveCmdAndInvoke(ownCtx, h.conf, transport, h.invoker, errs, wg)
+	go receiveCmdAndInvoke(ownCtx, transport, h.invoker, errs, wg, h.options)
 
 	select {
 	case <-ownCtx.Done():
@@ -51,11 +52,12 @@ func (h *Handler[T]) Handle(ctx context.Context,
 	return
 }
 
-func receiveCmdAndInvoke[T any](ctx context.Context, conf Conf,
+func receiveCmdAndInvoke[T any](ctx context.Context,
 	transport delegate.ServerTransport[T],
 	invoker Invoker[T],
 	errs chan<- error,
 	wg *sync.WaitGroup,
+	options Options,
 ) {
 	var (
 		seq   base.Seq
@@ -65,8 +67,8 @@ func receiveCmdAndInvoke[T any](ctx context.Context, conf Conf,
 		proxy = NewProxy[T](transport)
 	)
 	for {
-		if conf.CmdReceiveDuration != 0 {
-			deadline := time.Now().Add(conf.CmdReceiveDuration)
+		if options.CmdReceiveDuration != 0 {
+			deadline := time.Now().Add(options.CmdReceiveDuration)
 			if err = transport.SetReceiveDeadline(deadline); err != nil {
 				queueErr(err, errs)
 				wg.Done()
@@ -79,7 +81,7 @@ func receiveCmdAndInvoke[T any](ctx context.Context, conf Conf,
 			wg.Done()
 			return
 		}
-		if conf.At {
+		if options.At {
 			at = time.Now()
 		}
 		wg.Add(1)
