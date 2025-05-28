@@ -5,6 +5,6 @@
 [![codecov](https://codecov.io/gh/cmd-stream/handler-go/graph/badge.svg?token=04UEO65CLJ)](https://codecov.io/gh/cmd-stream/handler-go)
 
 handler-go provides the connection handler for the cmd-stream server.
- 
-It implements the `delegate.ServerTransportHandler` interface, executing each
-Command in its own goroutine using the `Invoker`.
+
+It implements the `server.TransportHandler` interface from the delegate-go 
+module and executes each command in its own goroutine using the `Invoker`.

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cmd-stream/base-go"
-	"github.com/cmd-stream/delegate-go"
+	dser "github.com/cmd-stream/delegate-go/server"
 )
 
 // New creates a new Handler.
@@ -27,8 +27,8 @@ type Handler[T any] struct {
 	options Options
 }
 
-func (h *Handler[T]) Handle(ctx context.Context,
-	transport delegate.ServerTransport[T]) (err error) {
+func (h *Handler[T]) Handle(ctx context.Context, transport dser.Transport[T]) (
+	err error) {
 	var (
 		wg             = &sync.WaitGroup{}
 		ownCtx, cancel = context.WithCancel(ctx)
@@ -52,8 +52,7 @@ func (h *Handler[T]) Handle(ctx context.Context,
 	return
 }
 
-func receiveCmdAndInvoke[T any](ctx context.Context,
-	transport delegate.ServerTransport[T],
+func receiveCmdAndInvoke[T any](ctx context.Context, transport dser.Transport[T],
 	invoker Invoker[T],
 	errs chan<- error,
 	wg *sync.WaitGroup,
@@ -62,6 +61,7 @@ func receiveCmdAndInvoke[T any](ctx context.Context,
 	var (
 		seq   base.Seq
 		cmd   base.Cmd[T]
+		n     int
 		err   error
 		at    time.Time
 		proxy = NewProxy[T](transport)
@@ -75,7 +75,7 @@ func receiveCmdAndInvoke[T any](ctx context.Context,
 				return
 			}
 		}
-		seq, cmd, err = transport.Receive()
+		seq, cmd, n, err = transport.Receive()
 		if err != nil {
 			queueErr(err, errs)
 			wg.Done()
@@ -85,18 +85,19 @@ func receiveCmdAndInvoke[T any](ctx context.Context,
 			at = time.Now()
 		}
 		wg.Add(1)
-		go invokeCmd(ctx, seq, cmd, at, invoker, proxy, errs, wg)
+		go invokeCmd(ctx, seq, at, n, cmd, invoker, proxy, errs, wg)
 	}
 }
 
-func invokeCmd[T any](ctx context.Context, seq base.Seq, cmd base.Cmd[T],
-	at time.Time,
+func invokeCmd[T any](ctx context.Context, seq base.Seq, at time.Time,
+	bytesRead int,
+	cmd base.Cmd[T],
 	invoker Invoker[T],
 	proxy base.Proxy,
 	errs chan<- error,
 	wg *sync.WaitGroup,
 ) {
-	err := invoker.Invoke(ctx, at, seq, cmd, proxy)
+	err := invoker.Invoke(ctx, seq, at, bytesRead, cmd, proxy)
 	if err != nil {
 		queueErr(err, errs)
 	}
