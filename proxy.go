@@ -6,19 +6,19 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/cmd-stream/base-go"
-	dser "github.com/cmd-stream/delegate-go/server"
+	"github.com/cmd-stream/core-go"
+	dsrv "github.com/cmd-stream/delegate-go/server"
 )
 
 // NewProxy creates a new Proxy.
-func NewProxy[T any](transport dser.Transport[T]) Proxy[T] {
+func NewProxy[T any](transport dsrv.Transport[T]) Proxy[T] {
 	var flushFlag uint32
 	return Proxy[T]{transport, &flushFlag, &sync.Mutex{}}
 }
 
-// Proxy implemets the base.Proxy interface.
+// Proxy implemets the core.Proxy interface.
 type Proxy[T any] struct {
-	transport dser.Transport[T]
+	transport dsrv.Transport[T]
 	flushFlag *uint32
 	mu        *sync.Mutex
 }
@@ -31,7 +31,7 @@ func (p Proxy[T]) RemoteAddr() net.Addr {
 	return p.transport.RemoteAddr()
 }
 
-func (p Proxy[T]) Send(seq base.Seq, result base.Result) (n int, err error) {
+func (p Proxy[T]) Send(seq core.Seq, result core.Result) (n int, err error) {
 	p.mu.Lock()
 	n, err = p.transport.Send(seq, result)
 	p.mu.Unlock()
@@ -41,7 +41,7 @@ func (p Proxy[T]) Send(seq base.Seq, result base.Result) (n int, err error) {
 	return n, p.flush()
 }
 
-func (p Proxy[T]) SendWithDeadline(seq base.Seq, result base.Result,
+func (p Proxy[T]) SendWithDeadline(seq core.Seq, result core.Result,
 	deadline time.Time) (n int, err error) {
 	p.mu.Lock()
 	err = p.transport.SetSendDeadline(deadline)

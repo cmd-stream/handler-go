@@ -1,7 +1,7 @@
-github.com/cmd-stream/base-go v0.0.0-20250528183024-04919e6a7de8 h1:azvHo5IBxsQOc2b7ywo7KDfYJc/0uXKQfxZ1vINOwTQ=
-github.com/cmd-stream/base-go v0.0.0-20250528183024-04919e6a7de8/go.mod h1:pgjDdAEVAW9KDfIl7bhdLo6vNtogbRhp0NttawTyG+E=
-github.com/cmd-stream/delegate-go v0.0.0-20250528183431-77ac6d0ec240 h1:Viahj95ICYnUpzwgo3jelo3HlinQ59VvqEMalacl0sM=
-github.com/cmd-stream/delegate-go v0.0.0-20250528183431-77ac6d0ec240/go.mod h1:Q7oU6Z7z3C10lYnNZUI+Qt05tAcRjZcl4YsXvLsbspQ=
+github.com/cmd-stream/core-go v0.0.0-20250530152717-bd25a4b01d40 h1:e1qS2LzSggkb0qHMbtmMi+jVL3ndPRa7A9DJZDLSpFg=
+github.com/cmd-stream/core-go v0.0.0-20250530152717-bd25a4b01d40/go.mod h1:cDnp3kDEWudlKh2Qx4mziDvfpR4WJftjMe0aH14+cNo=
+github.com/cmd-stream/delegate-go v0.0.0-20250530174048-ec6d1c990b01 h1:vc31hunx4wjQ6u7CR9AHZGSANgvYJHdLKYX3CPJGnpo=
+github.com/cmd-stream/delegate-go v0.0.0-20250530174048-ec6d1c990b01/go.mod h1:X8jUMZ6GlQJCRM6MrLzZY6iqMInRFgA0nDZZZ0oNH4I=
 github.com/mus-format/common-go v0.0.0-20250307125743-867bbd6eb59c h1:axAH0WwqkZNIWZIyswO59y63JaymSi9kqy3yybhQTdI=
 github.com/mus-format/common-go v0.0.0-20250307125743-867bbd6eb59c/go.mod h1:1hTb8w0YdSGIOU6wNY+e9uXnDZ9OQnUivNtd8cPSdoU=
 github.com/mus-format/mus-stream-go v0.7.0 h1:FejG1zOcm7N1kssC7aanlcviUM+S3W4M7enqPdmJlg0=

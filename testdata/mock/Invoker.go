@@ -1,15 +1,15 @@
-package hmock
+package mock
 
 import (
 	"context"
 	"time"
 
-	"github.com/cmd-stream/base-go"
+	"github.com/cmd-stream/core-go"
 	"github.com/ymz-ncnk/mok"
 )
 
-type InvokeFn[T any] func(ctx context.Context, seq base.Seq, at time.Time,
-	bytesRead int, cmd base.Cmd[T], proxy base.Proxy) (err error)
+type InvokeFn[T any] func(ctx context.Context, seq core.Seq, at time.Time,
+	bytesRead int, cmd core.Cmd[T], proxy core.Proxy) (err error)
 
 func NewInvoker[T any]() Invoker[T] {
 	return Invoker[T]{
@@ -31,13 +31,13 @@ func (mock Invoker[T]) RegisterNInvoke(n int, fn InvokeFn[T]) Invoker[T] {
 	return mock
 }
 
-func (mock Invoker[T]) Invoke(ctx context.Context, seq base.Seq, at time.Time,
+func (mock Invoker[T]) Invoke(ctx context.Context, seq core.Seq, at time.Time,
 	bytesRead int,
-	cmd base.Cmd[T],
-	proxy base.Proxy,
+	cmd core.Cmd[T],
+	proxy core.Proxy,
 ) (err error) {
 	vals, err := mock.Call("Invoke", mok.SafeVal[context.Context](ctx), seq, at,
-		bytesRead, mok.SafeVal[base.Cmd[T]](cmd), mok.SafeVal[base.Proxy](proxy))
+		bytesRead, mok.SafeVal[core.Cmd[T]](cmd), mok.SafeVal[core.Proxy](proxy))
 	if err != nil {
 		panic(err)
 	}

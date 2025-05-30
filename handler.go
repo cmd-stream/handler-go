@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cmd-stream/base-go"
-	dser "github.com/cmd-stream/delegate-go/server"
+	"github.com/cmd-stream/core-go"
+	dsrv "github.com/cmd-stream/delegate-go/server"
 )
 
 // New creates a new Handler.
@@ -27,7 +27,7 @@ type Handler[T any] struct {
 	options Options
 }
 
-func (h *Handler[T]) Handle(ctx context.Context, transport dser.Transport[T]) (
+func (h *Handler[T]) Handle(ctx context.Context, transport dsrv.Transport[T]) (
 	err error) {
 	var (
 		wg             = &sync.WaitGroup{}
@@ -52,15 +52,15 @@ func (h *Handler[T]) Handle(ctx context.Context, transport dser.Transport[T]) (
 	return
 }
 
-func receiveCmdAndInvoke[T any](ctx context.Context, transport dser.Transport[T],
+func receiveCmdAndInvoke[T any](ctx context.Context, transport dsrv.Transport[T],
 	invoker Invoker[T],
 	errs chan<- error,
 	wg *sync.WaitGroup,
 	options Options,
 ) {
 	var (
-		seq   base.Seq
-		cmd   base.Cmd[T]
+		seq   core.Seq
+		cmd   core.Cmd[T]
 		n     int
 		err   error
 		at    time.Time
@@ -89,11 +89,11 @@ func receiveCmdAndInvoke[T any](ctx context.Context, transport dser.Transport[T]
 	}
 }
 
-func invokeCmd[T any](ctx context.Context, seq base.Seq, at time.Time,
+func invokeCmd[T any](ctx context.Context, seq core.Seq, at time.Time,
 	bytesRead int,
-	cmd base.Cmd[T],
+	cmd core.Cmd[T],
 	invoker Invoker[T],
-	proxy base.Proxy,
+	proxy core.Proxy,
 	errs chan<- error,
 	wg *sync.WaitGroup,
 ) {

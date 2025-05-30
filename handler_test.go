@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cmd-stream/base-go"
-	bmock "github.com/cmd-stream/base-go/testdata/mock"
-	dsmock "github.com/cmd-stream/delegate-go/server/testdata/mock"
-	hmock "github.com/cmd-stream/handler-go/testdata/mock"
+	"github.com/cmd-stream/core-go"
+	cmock "github.com/cmd-stream/core-go/testdata/mock"
+	dmock "github.com/cmd-stream/delegate-go/server/testdata/mock"
+	mock "github.com/cmd-stream/handler-go/testdata/mock"
 	asserterror "github.com/ymz-ncnk/assert/error"
 	"github.com/ymz-ncnk/mok"
 )
@@ -27,31 +27,31 @@ func TestHandler(t *testing.T) {
 
 				wantN   int      = 1
 				wantErr          = context.Canceled
-				seq1    base.Seq = 1
-				seq2    base.Seq = 2
+				seq1    core.Seq = 1
+				seq2    core.Seq = 2
 
-				cmd1 = bmock.NewCmd()
-				cmd2 = bmock.NewCmd()
-				cmds = map[bmock.Cmd]struct{}{cmd1: {}, cmd2: {}}
+				cmd1 = cmock.NewCmd()
+				cmd2 = cmock.NewCmd()
+				cmds = map[cmock.Cmd]struct{}{cmd1: {}, cmd2: {}}
 
 				done      = make(chan struct{})
 				starTime  = time.Now()
-				transport = dsmock.NewTransport().RegisterNSetReceiveDeadline(3,
+				transport = dmock.NewTransport().RegisterNSetReceiveDeadline(3,
 					func(deadline time.Time) (err error) {
 						wantDeadline := starTime.Add(wantCmdReceiveDuration)
 						asserterror.SameTime(deadline, wantDeadline, delta, t)
 						return
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						return seq1, cmd1, 1, nil
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						return seq2, cmd2, 2, nil
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						<-done
 						n = wantN
 						err = errors.New("transport closed")
@@ -63,16 +63,16 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = hmock.NewInvoker[any]().RegisterInvoke(
-					func(ctx context.Context, seq base.Seq, at time.Time, bytesRead int,
-						cmd base.Cmd[any], proxy base.Proxy) (err error) {
-						delete(cmds, cmd.(bmock.Cmd))
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
+					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
+						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
 				).RegisterInvoke(
-					func(ctx context.Context, seq base.Seq, at time.Time, bytesRead int,
-						cmd base.Cmd[any], proxy base.Proxy) (err error) {
-						delete(cmds, cmd.(bmock.Cmd))
+					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
+						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
 				)
@@ -94,7 +94,7 @@ func TestHandler(t *testing.T) {
 			var (
 				ctx, cancel = context.WithCancel(context.Background())
 				wantErr     = errors.New("Transport.SetReceiveDeadline error")
-				transport   = dsmock.NewTransport().RegisterSetReceiveDeadline(
+				transport   = dmock.NewTransport().RegisterSetReceiveDeadline(
 					func(deadline time.Time) (err error) { return wantErr },
 				).RegisterClose(
 					func() (err error) { return nil },
@@ -114,8 +114,8 @@ func TestHandler(t *testing.T) {
 				ctx, cancel     = context.WithCancel(context.Background())
 				wantCmdSize int = 2
 				wantErr         = errors.New("Transport.Receive error")
-				transport       = dsmock.NewTransport().RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], cmdSize int, err error) {
+				transport       = dmock.NewTransport().RegisterReceive(
+					func() (seq core.Seq, cmd core.Cmd[any], cmdSize int, err error) {
 						cmdSize = wantCmdSize
 						err = wantErr
 						return
@@ -138,12 +138,12 @@ func TestHandler(t *testing.T) {
 				wantN     int = 2
 				wantErr       = errors.New("Invoker.Invoke error")
 				done          = make(chan struct{})
-				transport     = dsmock.NewTransport().RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
-						return 1, bmock.NewCmd(), wantN, nil
+				transport     = dmock.NewTransport().RegisterReceive(
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
+						return 1, cmock.NewCmd(), wantN, nil
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						<-done
 						return 0, nil, 0, errors.New("transport closed")
 					},
@@ -153,9 +153,9 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = hmock.NewInvoker[any]().RegisterInvoke(
-					func(ctx context.Context, seq base.Seq, at time.Time, bytesRead int,
-						cmd base.Cmd[any], proxy base.Proxy) (err error) {
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
+					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
+						cmd core.Cmd[any], proxy core.Proxy) (err error) {
 						asserterror.Equal(bytesRead, wantN, t)
 						return wantErr
 					},
@@ -176,15 +176,15 @@ func TestHandler(t *testing.T) {
 				wantN       int = 3
 				mu          sync.Mutex
 				done        = make(chan struct{})
-				transport   = dsmock.NewTransport().RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+				transport   = dmock.NewTransport().RegisterReceive(
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						mu.Lock()
 						wantAt = time.Now()
 						mu.Unlock()
-						return 1, bmock.NewCmd(), wantN, nil
+						return 1, cmock.NewCmd(), wantN, nil
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						<-done
 						return 0, nil, 0, errors.New("transport closed")
 					},
@@ -194,9 +194,9 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = hmock.NewInvoker[any]().RegisterInvoke(
-					func(ctx context.Context, seq base.Seq, at time.Time, bytesRead int,
-						cmd base.Cmd[any], proxy base.Proxy) (err error) {
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
+					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
+						cmd core.Cmd[any], proxy core.Proxy) (err error) {
 						asserterror.Equal(bytesRead, wantN, t)
 						defer cancel()
 						mu.Lock()
@@ -219,16 +219,16 @@ func TestHandler(t *testing.T) {
 				ctx, cancel     = context.WithCancel(context.Background())
 				wantN       int = 1
 				wantErr         = context.Canceled
-				cmd             = bmock.NewCmd()
+				cmd             = cmock.NewCmd()
 				done            = make(chan struct{})
-				transport       = dsmock.NewTransport().RegisterNSetReceiveDeadline(2,
+				transport       = dmock.NewTransport().RegisterNSetReceiveDeadline(2,
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						return 1, cmd, 1, nil
 					},
 				).RegisterReceive(
-					func() (seq base.Seq, cmd base.Cmd[any], n int, err error) {
+					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						<-done
 						return 0, nil, wantN, errors.New("transport closed")
 					},
@@ -238,9 +238,9 @@ func TestHandler(t *testing.T) {
 						return
 					},
 				)
-				invoker = hmock.NewInvoker[any]().RegisterInvoke(
-					func(ctx context.Context, seq base.Seq, at time.Time, bytesRead int,
-						cmd base.Cmd[any], proxy base.Proxy) (err error) {
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
+					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
+						cmd core.Cmd[any], proxy core.Proxy) (err error) {
 						<-ctx.Done()
 						return context.Canceled
 					},
