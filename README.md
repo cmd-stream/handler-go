@@ -4,7 +4,7 @@
 [![GoReportCard](https://goreportcard.com/badge/cmd-stream/handler-go)](https://goreportcard.com/report/github.com/cmd-stream/handler-go)
 [![codecov](https://codecov.io/gh/cmd-stream/handler-go/graph/badge.svg?token=04UEO65CLJ)](https://codecov.io/gh/cmd-stream/handler-go)
 
-handler-go provides the connection handler for the cmd-stream server.
+**handler-go** provides a connection handler for the `cmd-stream-go` server.
 
-It implements the `server.TransportHandler` interface from the delegate-go 
-module and executes each command in its own goroutine using the `Invoker`.
+It implements the `server.TransportHandler` interface from the `delegate-go`
+module and executes each Command concurrently using the `Invoker`.
