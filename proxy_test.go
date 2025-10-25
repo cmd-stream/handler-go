@@ -13,12 +13,11 @@ import (
 )
 
 func TestProxy(t *testing.T) {
-
 	t.Run("Send should work correctly", func(t *testing.T) {
 		var (
 			wantSeq    core.Seq = 1
 			wantResult          = cmock.NewResult()
-			wantN      int      = 1
+			wantN               = 1
 			wantErr    error    = nil
 			transport           = dmock.NewTransport().RegisterSend(
 				func(seq core.Seq, result core.Result) (n int, err error) {
@@ -39,9 +38,9 @@ func TestProxy(t *testing.T) {
 	t.Run("If Transport.Send fails with an error, Send should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 2
-				wantErr       = errors.New("Transport.Send error")
-				transport     = dmock.NewTransport().RegisterSend(
+				wantN     = 2
+				wantErr   = errors.New("Transport.Send error")
+				transport = dmock.NewTransport().RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) {
 						return wantN, wantErr
 					},
@@ -56,9 +55,9 @@ func TestProxy(t *testing.T) {
 	t.Run("If Transport.Flush fails with an error, Send should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 3
-				wantErr       = errors.New("Transport.Flush error")
-				transport     = dmock.NewTransport().RegisterSend(
+				wantN     = 3
+				wantErr   = errors.New("Transport.Flush error")
+				transport = dmock.NewTransport().RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) {
 						return wantN, nil
 					},
@@ -77,7 +76,7 @@ func TestProxy(t *testing.T) {
 			wantDeadline          = time.Now()
 			wantSeq      core.Seq = 1
 			wantResult            = cmock.NewResult()
-			wantN        int      = 4
+			wantN                 = 4
 			wantErr      error    = nil
 			transport             = dmock.NewTransport().RegisterSetSendDeadline(
 				func(deadline time.Time) (err error) {
@@ -107,9 +106,9 @@ func TestProxy(t *testing.T) {
 	t.Run("If Transport.SetSendDeadline fails with an error, SendWithDeadline should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 0
-				wantErr       = errors.New("Transport.SetSendDeadline error")
-				transport     = dmock.NewTransport().RegisterSetSendDeadline(
+				wantN     = 0
+				wantErr   = errors.New("Transport.SetSendDeadline error")
+				transport = dmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) {
 						return wantErr
 					},
@@ -124,9 +123,9 @@ func TestProxy(t *testing.T) {
 	t.Run("If Transport.Send fails with an error, SendWithDeadline should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 5
-				wantErr       = errors.New("Transport.Send error")
-				transport     = dmock.NewTransport().RegisterSetSendDeadline(
+				wantN     = 5
+				wantErr   = errors.New("Transport.Send error")
+				transport = dmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) { return wantN, wantErr },
@@ -141,9 +140,9 @@ func TestProxy(t *testing.T) {
 	t.Run("If Transport.Flush fails with an error, SendWithDeadline should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 6
-				wantErr       = errors.New("Transport.Flush error")
-				transport     = dmock.NewTransport().RegisterSetSendDeadline(
+				wantN     = 6
+				wantErr   = errors.New("Transport.Flush error")
+				transport = dmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) { return wantN, nil },
@@ -156,5 +155,4 @@ func TestProxy(t *testing.T) {
 			asserterror.Equal(n, wantN, t)
 			asserterror.Equal(err, wantErr, t)
 		})
-
 }

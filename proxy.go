@@ -42,7 +42,8 @@ func (p Proxy[T]) Send(seq core.Seq, result core.Result) (n int, err error) {
 }
 
 func (p Proxy[T]) SendWithDeadline(seq core.Seq, result core.Result,
-	deadline time.Time) (n int, err error) {
+	deadline time.Time,
+) (n int, err error) {
 	p.mu.Lock()
 	err = p.transport.SetSendDeadline(deadline)
 	if err != nil {

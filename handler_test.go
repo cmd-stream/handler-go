@@ -16,8 +16,7 @@ import (
 )
 
 func TestHandler(t *testing.T) {
-
-	var delta = 100 * time.Millisecond
+	delta := 100 * time.Millisecond
 
 	t.Run("Handler should be able to handle several cmds and close when ctx done",
 		func(t *testing.T) {
@@ -25,7 +24,7 @@ func TestHandler(t *testing.T) {
 				ctx, cancel            = context.WithCancel(context.Background())
 				wantCmdReceiveDuration = time.Second
 
-				wantN   int      = 1
+				wantN            = 1
 				wantErr          = context.Canceled
 				seq1    core.Seq = 1
 				seq2    core.Seq = 2
@@ -65,13 +64,15 @@ func TestHandler(t *testing.T) {
 				)
 				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
-						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						cmd core.Cmd[any], proxy core.Proxy,
+					) (err error) {
 						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
 				).RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
-						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						cmd core.Cmd[any], proxy core.Proxy,
+					) (err error) {
 						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
@@ -111,10 +112,10 @@ func TestHandler(t *testing.T) {
 	t.Run("If Transport.Receive fails with an error, Handle should return it",
 		func(t *testing.T) {
 			var (
-				ctx, cancel     = context.WithCancel(context.Background())
-				wantCmdSize int = 2
-				wantErr         = errors.New("Transport.Receive error")
-				transport       = dmock.NewTransport().RegisterReceive(
+				ctx, cancel = context.WithCancel(context.Background())
+				wantCmdSize = 2
+				wantErr     = errors.New("Transport.Receive error")
+				transport   = dmock.NewTransport().RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], cmdSize int, err error) {
 						cmdSize = wantCmdSize
 						err = wantErr
@@ -135,10 +136,10 @@ func TestHandler(t *testing.T) {
 	t.Run("If Invoker.Invoke fails with an error, Handle should return it",
 		func(t *testing.T) {
 			var (
-				wantN     int = 2
-				wantErr       = errors.New("Invoker.Invoke error")
-				done          = make(chan struct{})
-				transport     = dmock.NewTransport().RegisterReceive(
+				wantN     = 2
+				wantErr   = errors.New("Invoker.Invoke error")
+				done      = make(chan struct{})
+				transport = dmock.NewTransport().RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						return 1, cmock.NewCmd(), wantN, nil
 					},
@@ -155,7 +156,8 @@ func TestHandler(t *testing.T) {
 				)
 				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
-						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						cmd core.Cmd[any], proxy core.Proxy,
+					) (err error) {
 						asserterror.Equal(bytesRead, wantN, t)
 						return wantErr
 					},
@@ -173,7 +175,7 @@ func TestHandler(t *testing.T) {
 			var (
 				ctx, cancel = context.WithCancel(context.Background())
 				wantAt      time.Time
-				wantN       int = 3
+				wantN       = 3
 				mu          sync.Mutex
 				done        = make(chan struct{})
 				transport   = dmock.NewTransport().RegisterReceive(
@@ -196,7 +198,8 @@ func TestHandler(t *testing.T) {
 				)
 				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
-						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						cmd core.Cmd[any], proxy core.Proxy,
+					) (err error) {
 						asserterror.Equal(bytesRead, wantN, t)
 						defer cancel()
 						mu.Lock()
@@ -216,12 +219,12 @@ func TestHandler(t *testing.T) {
 	t.Run("We should be able to interupt Handler, while it invoke a Command and is locked on ctx",
 		func(t *testing.T) {
 			var (
-				ctx, cancel     = context.WithCancel(context.Background())
-				wantN       int = 1
-				wantErr         = context.Canceled
-				cmd             = cmock.NewCmd()
-				done            = make(chan struct{})
-				transport       = dmock.NewTransport().RegisterNSetReceiveDeadline(2,
+				ctx, cancel = context.WithCancel(context.Background())
+				wantN       = 1
+				wantErr     = context.Canceled
+				cmd         = cmock.NewCmd()
+				done        = make(chan struct{})
+				transport   = dmock.NewTransport().RegisterNSetReceiveDeadline(2,
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
@@ -240,7 +243,8 @@ func TestHandler(t *testing.T) {
 				)
 				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
-						cmd core.Cmd[any], proxy core.Proxy) (err error) {
+						cmd core.Cmd[any], proxy core.Proxy,
+					) (err error) {
 						<-ctx.Done()
 						return context.Canceled
 					},
@@ -256,5 +260,4 @@ func TestHandler(t *testing.T) {
 			asserterror.EqualError(err, wantErr, t)
 			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
 		})
-
 }

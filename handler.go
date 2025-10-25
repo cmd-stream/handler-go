@@ -1,3 +1,7 @@
+// Package handler provides a server-side connection handler for cmd-stream-go.
+//
+// Handler implements the delegate.ServerTransportHandler interface from
+// the delegate-go module.
 package handler
 
 import (
@@ -28,7 +32,8 @@ type Handler[T any] struct {
 }
 
 func (h *Handler[T]) Handle(ctx context.Context, transport dsrv.Transport[T]) (
-	err error) {
+	err error,
+) {
 	var (
 		wg             = &sync.WaitGroup{}
 		ownCtx, cancel = context.WithCancel(ctx)
@@ -64,7 +69,7 @@ func receiveCmdAndInvoke[T any](ctx context.Context, transport dsrv.Transport[T]
 		n     int
 		err   error
 		at    time.Time
-		proxy = NewProxy[T](transport)
+		proxy = NewProxy(transport)
 	)
 	for {
 		if options.CmdReceiveDuration != 0 {

@@ -22,5 +22,4 @@ func TestOptions(t *testing.T) {
 	if o.At != wantAt {
 		t.Errorf("unexpected wantAt, want %v actual %v", wantAt, o.At)
 	}
-
 }

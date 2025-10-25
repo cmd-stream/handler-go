@@ -22,6 +22,7 @@ type InvokerFn[T any] func(ctx context.Context, seq core.Seq, at time.Time,
 	bytesRead int, cmd core.Cmd[T], proxy core.Proxy) error
 
 func (i InvokerFn[T]) Invoke(ctx context.Context, seq core.Seq, at time.Time,
-	bytesRead int, cmd core.Cmd[T], proxy core.Proxy) error {
+	bytesRead int, cmd core.Cmd[T], proxy core.Proxy,
+) error {
 	return i(ctx, seq, at, bytesRead, cmd, proxy)
 }
