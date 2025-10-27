@@ -3,8 +3,8 @@ module github.com/cmd-stream/handler-go
 go 1.23.0
 
 require (
-	github.com/cmd-stream/core-go v0.0.0-20251025143037-f2b47196c1b1
-	github.com/cmd-stream/delegate-go v0.0.0-20251026175354-549ed153a503
+	github.com/cmd-stream/core-go v0.0.0-20251027162750-48e25877ff59
+	github.com/cmd-stream/delegate-go v0.0.0-20251027163210-4c50873ff799
 	github.com/ymz-ncnk/assert v0.0.0-20250528151733-c41b2fca7933
 	github.com/ymz-ncnk/mok v0.2.1
 )
