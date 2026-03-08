@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/cmd-stream/core-go"
-	cmocks "github.com/cmd-stream/testkit-go/mocks/core"
-	dmocks "github.com/cmd-stream/testkit-go/mocks/delegate/server"
-	mocks "github.com/cmd-stream/testkit-go/mocks/handler"
+	cmock "github.com/cmd-stream/core-go/test/mock"
+	dsrvmock "github.com/cmd-stream/delegate-go/test/mock/server"
+	"github.com/cmd-stream/handler-go/test/mock"
 	asserterror "github.com/ymz-ncnk/assert/error"
 	"github.com/ymz-ncnk/mok"
 )
@@ -29,16 +29,16 @@ func TestHandler(t *testing.T) {
 				seq1    core.Seq = 1
 				seq2    core.Seq = 2
 
-				cmd1 = cmocks.NewCmd()
-				cmd2 = cmocks.NewCmd()
-				cmds = map[cmocks.Cmd]struct{}{cmd1: {}, cmd2: {}}
+				cmd1 = cmock.NewCmd()
+				cmd2 = cmock.NewCmd()
+				cmds = map[cmock.Cmd]struct{}{cmd1: {}, cmd2: {}}
 
 				done      = make(chan struct{})
 				starTime  = time.Now()
-				transport = dmocks.NewTransport().RegisterNSetReceiveDeadline(3,
+				transport = dsrvmock.NewTransport().RegisterNSetReceiveDeadline(3,
 					func(deadline time.Time) (err error) {
 						wantDeadline := starTime.Add(wantCmdReceiveDuration)
-						asserterror.SameTime(deadline, wantDeadline, delta, t)
+						asserterror.SameTime(t, deadline, wantDeadline, delta)
 						return
 					},
 				).RegisterReceive(
@@ -62,18 +62,18 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = mocks.NewInvoker[any]().RegisterInvoke(
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
 						cmd core.Cmd[any], proxy core.Proxy,
 					) (err error) {
-						delete(cmds, cmd.(cmocks.Cmd))
+						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
 				).RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
 						cmd core.Cmd[any], proxy core.Proxy,
 					) (err error) {
-						delete(cmds, cmd.(cmocks.Cmd))
+						delete(cmds, cmd.(cmock.Cmd))
 						return nil
 					},
 				)
@@ -85,9 +85,9 @@ func TestHandler(t *testing.T) {
 				cancel()
 			}()
 			err := handler.Handle(ctx, transport)
-			asserterror.EqualError(err, wantErr, t)
-			asserterror.Equal(len(cmds), 0, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, wantErr)
+			asserterror.Equal(t, len(cmds), 0)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 
 	t.Run("If Transport.SetReceiveDeadline fails with an error, Handle should return it",
@@ -95,7 +95,7 @@ func TestHandler(t *testing.T) {
 			var (
 				ctx, cancel = context.WithCancel(context.Background())
 				wantErr     = errors.New("Transport.SetReceiveDeadline error")
-				transport   = dmocks.NewTransport().RegisterSetReceiveDeadline(
+				transport   = dsrvmock.NewTransport().RegisterSetReceiveDeadline(
 					func(deadline time.Time) (err error) { return wantErr },
 				).RegisterClose(
 					func() (err error) { return nil },
@@ -105,8 +105,8 @@ func TestHandler(t *testing.T) {
 			)
 			defer cancel()
 			err := handler.Handle(ctx, transport)
-			asserterror.EqualError(err, wantErr, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, wantErr)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 
 	t.Run("If Transport.Receive fails with an error, Handle should return it",
@@ -115,7 +115,7 @@ func TestHandler(t *testing.T) {
 				ctx, cancel = context.WithCancel(context.Background())
 				wantCmdSize = 2
 				wantErr     = errors.New("Transport.Receive error")
-				transport   = dmocks.NewTransport().RegisterReceive(
+				transport   = dsrvmock.NewTransport().RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], cmdSize int, err error) {
 						cmdSize = wantCmdSize
 						err = wantErr
@@ -129,8 +129,8 @@ func TestHandler(t *testing.T) {
 			)
 			defer cancel()
 			err := handler.Handle(ctx, transport)
-			asserterror.EqualError(err, wantErr, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, wantErr)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 
 	t.Run("If Invoker.Invoke fails with an error, Handle should return it",
@@ -139,9 +139,9 @@ func TestHandler(t *testing.T) {
 				wantN     = 2
 				wantErr   = errors.New("Invoker.Invoke error")
 				done      = make(chan struct{})
-				transport = dmocks.NewTransport().RegisterReceive(
+				transport = dsrvmock.NewTransport().RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
-						return 1, cmocks.NewCmd(), wantN, nil
+						return 1, cmock.NewCmd(), wantN, nil
 					},
 				).RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
@@ -154,11 +154,11 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = mocks.NewInvoker[any]().RegisterInvoke(
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
 						cmd core.Cmd[any], proxy core.Proxy,
 					) (err error) {
-						asserterror.Equal(bytesRead, wantN, t)
+						asserterror.Equal(t, bytesRead, wantN)
 						return wantErr
 					},
 				)
@@ -166,8 +166,8 @@ func TestHandler(t *testing.T) {
 				mocks   = []*mok.Mock{transport.Mock, invoker.Mock}
 			)
 			err := handler.Handle(context.Background(), transport)
-			asserterror.EqualError(err, wantErr, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, wantErr)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 
 	t.Run("If Conf.At == true, Invoker.Invoke should receive not empty 'at' param",
@@ -178,12 +178,12 @@ func TestHandler(t *testing.T) {
 				wantN       = 3
 				mu          sync.Mutex
 				done        = make(chan struct{})
-				transport   = dmocks.NewTransport().RegisterReceive(
+				transport   = dsrvmock.NewTransport().RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
 						mu.Lock()
 						wantAt = time.Now()
 						mu.Unlock()
-						return 1, cmocks.NewCmd(), wantN, nil
+						return 1, cmock.NewCmd(), wantN, nil
 					},
 				).RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
@@ -196,14 +196,14 @@ func TestHandler(t *testing.T) {
 						return nil
 					},
 				)
-				invoker = mocks.NewInvoker[any]().RegisterInvoke(
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
 						cmd core.Cmd[any], proxy core.Proxy,
 					) (err error) {
-						asserterror.Equal(bytesRead, wantN, t)
+						asserterror.Equal(t, bytesRead, wantN)
 						defer cancel()
 						mu.Lock()
-						asserterror.SameTime(at, wantAt, delta, t)
+						asserterror.SameTime(t, at, wantAt, delta)
 						mu.Unlock()
 						return
 					},
@@ -212,8 +212,8 @@ func TestHandler(t *testing.T) {
 				mocks   = []*mok.Mock{transport.Mock, invoker.Mock}
 			)
 			err := handler.Handle(ctx, transport)
-			asserterror.EqualError(err, context.Canceled, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, context.Canceled)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 
 	t.Run("We should be able to interupt Handler, while it invoke a Command and is locked on ctx",
@@ -222,9 +222,9 @@ func TestHandler(t *testing.T) {
 				ctx, cancel = context.WithCancel(context.Background())
 				wantN       = 1
 				wantErr     = context.Canceled
-				cmd         = cmocks.NewCmd()
+				cmd         = cmock.NewCmd()
 				done        = make(chan struct{})
-				transport   = dmocks.NewTransport().RegisterNSetReceiveDeadline(2,
+				transport   = dsrvmock.NewTransport().RegisterNSetReceiveDeadline(2,
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterReceive(
 					func() (seq core.Seq, cmd core.Cmd[any], n int, err error) {
@@ -241,7 +241,7 @@ func TestHandler(t *testing.T) {
 						return
 					},
 				)
-				invoker = mocks.NewInvoker[any]().RegisterInvoke(
+				invoker = mock.NewInvoker[any]().RegisterInvoke(
 					func(ctx context.Context, seq core.Seq, at time.Time, bytesRead int,
 						cmd core.Cmd[any], proxy core.Proxy,
 					) (err error) {
@@ -257,7 +257,7 @@ func TestHandler(t *testing.T) {
 				cancel()
 			}()
 			err := handler.Handle(ctx, transport)
-			asserterror.EqualError(err, wantErr, t)
-			asserterror.EqualDeep(mok.CheckCalls(mocks), mok.EmptyInfomap, t)
+			asserterror.EqualError(t, err, wantErr)
+			asserterror.EqualDeep(t, mok.CheckCalls(mocks), mok.EmptyInfomap)
 		})
 }

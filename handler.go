@@ -1,7 +1,5 @@
-// Package handler provides a server-side connection handler for cmd-stream-go.
-//
-// Handler implements the delegate.ServerTransportHandler interface from
-// the delegate-go module.
+// Package handler provides a server-side connection handler for cmd-stream
+// library.
 package handler
 
 import (
@@ -14,9 +12,9 @@ import (
 )
 
 // New creates a new Handler.
-func New[T any](invoker Invoker[T], ops ...SetOption) *Handler[T] {
+func New[T any](invoker Invoker[T], opts ...SetOption) *Handler[T] {
 	h := Handler[T]{invoker: invoker}
-	Apply(ops, &h.options)
+	Apply(opts, &h.options)
 	return &h
 }
 

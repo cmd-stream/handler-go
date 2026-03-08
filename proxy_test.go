@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/cmd-stream/core-go"
-	cmocks "github.com/cmd-stream/testkit-go/mocks/core"
-	dmocks "github.com/cmd-stream/testkit-go/mocks/delegate/server"
+	cmock "github.com/cmd-stream/core-go/test/mock"
+	dsrvmock "github.com/cmd-stream/delegate-go/test/mock/server"
 	asserterror "github.com/ymz-ncnk/assert/error"
 )
 
@@ -16,13 +16,13 @@ func TestProxy(t *testing.T) {
 	t.Run("Send should work correctly", func(t *testing.T) {
 		var (
 			wantSeq    core.Seq = 1
-			wantResult          = cmocks.NewResult()
+			wantResult          = cmock.NewResult()
 			wantN               = 1
 			wantErr    error    = nil
-			transport           = dmocks.NewTransport().RegisterSend(
+			transport           = dsrvmock.NewTransport().RegisterSend(
 				func(seq core.Seq, result core.Result) (n int, err error) {
-					asserterror.Equal(seq, wantSeq, t)
-					asserterror.EqualDeep(result, wantResult, t)
+					asserterror.Equal(t, seq, wantSeq)
+					asserterror.EqualDeep(t, result, wantResult)
 					return wantN, wantErr
 				},
 			).RegisterFlush(
@@ -31,8 +31,8 @@ func TestProxy(t *testing.T) {
 			proxy  = NewProxy(transport)
 			n, err = proxy.Send(wantSeq, wantResult)
 		)
-		asserterror.Equal(n, wantN, t)
-		asserterror.Equal(err, wantErr, t)
+		asserterror.Equal(t, n, wantN)
+		asserterror.Equal(t, err, wantErr)
 	})
 
 	t.Run("If Transport.Send fails with an error, Send should return it",
@@ -40,16 +40,16 @@ func TestProxy(t *testing.T) {
 			var (
 				wantN     = 2
 				wantErr   = errors.New("Transport.Send error")
-				transport = dmocks.NewTransport().RegisterSend(
+				transport = dsrvmock.NewTransport().RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) {
 						return wantN, wantErr
 					},
 				)
 				proxy  = NewProxy(transport)
-				n, err = proxy.Send(1, cmocks.NewResult())
+				n, err = proxy.Send(1, cmock.NewResult())
 			)
-			asserterror.Equal(n, wantN, t)
-			asserterror.Equal(err, wantErr, t)
+			asserterror.Equal(t, n, wantN)
+			asserterror.Equal(t, err, wantErr)
 		})
 
 	t.Run("If Transport.Flush fails with an error, Send should return it",
@@ -57,7 +57,7 @@ func TestProxy(t *testing.T) {
 			var (
 				wantN     = 3
 				wantErr   = errors.New("Transport.Flush error")
-				transport = dmocks.NewTransport().RegisterSend(
+				transport = dsrvmock.NewTransport().RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) {
 						return wantN, nil
 					},
@@ -65,20 +65,20 @@ func TestProxy(t *testing.T) {
 					func() (err error) { return wantErr },
 				)
 				proxy  = NewProxy(transport)
-				n, err = proxy.Send(1, cmocks.NewResult())
+				n, err = proxy.Send(1, cmock.NewResult())
 			)
-			asserterror.Equal(n, wantN, t)
-			asserterror.Equal(err, wantErr, t)
+			asserterror.Equal(t, n, wantN)
+			asserterror.Equal(t, err, wantErr)
 		})
 
 	t.Run("SendWithDeadline should work correctly", func(t *testing.T) {
 		var (
 			wantDeadline          = time.Now()
 			wantSeq      core.Seq = 1
-			wantResult            = cmocks.NewResult()
+			wantResult            = cmock.NewResult()
 			wantN                 = 4
 			wantErr      error    = nil
-			transport             = dmocks.NewTransport().RegisterSetSendDeadline(
+			transport             = dsrvmock.NewTransport().RegisterSetSendDeadline(
 				func(deadline time.Time) (err error) {
 					if deadline != wantDeadline {
 						err = fmt.Errorf("unexpectd deadline, want '%v' actual '%v'",
@@ -89,8 +89,8 @@ func TestProxy(t *testing.T) {
 				},
 			).RegisterSend(
 				func(seq core.Seq, result core.Result) (n int, err error) {
-					asserterror.Equal(seq, wantSeq, t)
-					asserterror.EqualDeep(result, wantResult, t)
+					asserterror.Equal(t, seq, wantSeq)
+					asserterror.EqualDeep(t, result, wantResult)
 					return wantN, nil
 				},
 			).RegisterFlush(
@@ -99,8 +99,8 @@ func TestProxy(t *testing.T) {
 			proxy  = NewProxy(transport)
 			n, err = proxy.SendWithDeadline(wantSeq, wantResult, wantDeadline)
 		)
-		asserterror.Equal(n, wantN, t)
-		asserterror.Equal(err, wantErr, t)
+		asserterror.Equal(t, n, wantN)
+		asserterror.Equal(t, err, wantErr)
 	})
 
 	t.Run("If Transport.SetSendDeadline fails with an error, SendWithDeadline should return it",
@@ -108,16 +108,16 @@ func TestProxy(t *testing.T) {
 			var (
 				wantN     = 0
 				wantErr   = errors.New("Transport.SetSendDeadline error")
-				transport = dmocks.NewTransport().RegisterSetSendDeadline(
+				transport = dsrvmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) {
 						return wantErr
 					},
 				)
 				proxy  = NewProxy(transport)
-				n, err = proxy.SendWithDeadline(1, cmocks.NewResult(), time.Now())
+				n, err = proxy.SendWithDeadline(1, cmock.NewResult(), time.Now())
 			)
-			asserterror.Equal(n, wantN, t)
-			asserterror.Equal(err, wantErr, t)
+			asserterror.Equal(t, n, wantN)
+			asserterror.Equal(t, err, wantErr)
 		})
 
 	t.Run("If Transport.Send fails with an error, SendWithDeadline should return it",
@@ -125,16 +125,16 @@ func TestProxy(t *testing.T) {
 			var (
 				wantN     = 5
 				wantErr   = errors.New("Transport.Send error")
-				transport = dmocks.NewTransport().RegisterSetSendDeadline(
+				transport = dsrvmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) { return wantN, wantErr },
 				)
 				proxy  = NewProxy(transport)
-				n, err = proxy.SendWithDeadline(1, cmocks.NewResult(), time.Now())
+				n, err = proxy.SendWithDeadline(1, cmock.NewResult(), time.Now())
 			)
-			asserterror.Equal(n, wantN, t)
-			asserterror.Equal(err, wantErr, t)
+			asserterror.Equal(t, n, wantN)
+			asserterror.Equal(t, err, wantErr)
 		})
 
 	t.Run("If Transport.Flush fails with an error, SendWithDeadline should return it",
@@ -142,7 +142,7 @@ func TestProxy(t *testing.T) {
 			var (
 				wantN     = 6
 				wantErr   = errors.New("Transport.Flush error")
-				transport = dmocks.NewTransport().RegisterSetSendDeadline(
+				transport = dsrvmock.NewTransport().RegisterSetSendDeadline(
 					func(deadline time.Time) (err error) { return nil },
 				).RegisterSend(
 					func(seq core.Seq, result core.Result) (n int, err error) { return wantN, nil },
@@ -150,9 +150,9 @@ func TestProxy(t *testing.T) {
 					func() (err error) { return wantErr },
 				)
 				proxy  = NewProxy(transport)
-				n, err = proxy.SendWithDeadline(1, cmocks.NewResult(), time.Now())
+				n, err = proxy.SendWithDeadline(1, cmock.NewResult(), time.Now())
 			)
-			asserterror.Equal(n, wantN, t)
-			asserterror.Equal(err, wantErr, t)
+			asserterror.Equal(t, n, wantN)
+			asserterror.Equal(t, err, wantErr)
 		})
 }
