@@ -1,5 +1,7 @@
 // Package handler provides a server-side connection handler for cmd-stream
 // library.
+//
+// Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 package handler
 
 import (
@@ -12,6 +14,8 @@ import (
 )
 
 // New creates a new Handler.
+//
+// Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 func New[T any](invoker Invoker[T], opts ...SetOption) *Handler[T] {
 	h := Handler[T]{invoker: invoker}
 	Apply(opts, &h.options)
@@ -24,6 +28,8 @@ func New[T any](invoker Invoker[T], opts ...SetOption) *Handler[T] {
 // using the Invoker.
 //
 // If an error occurs, the Handler closes the transport connection.
+//
+// Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 type Handler[T any] struct {
 	invoker Invoker[T]
 	options Options

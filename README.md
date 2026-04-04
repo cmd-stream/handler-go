@@ -1,5 +1,10 @@
 # handler-go
 
+> [!CAUTION]
+> **This package is deprecated.** It is no longer supported and will not receive
+>  further updates. Please migrate to the new [cmd-stream-go v0.5.1](https://github.com/cmd-stream/cmd-stream-go) package.
+
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/cmd-stream/handler-go.svg)](https://pkg.go.dev/github.com/cmd-stream/handler-go)
 [![GoReportCard](https://goreportcard.com/badge/cmd-stream/handler-go)](https://goreportcard.com/report/github.com/cmd-stream/handler-go)
 [![codecov](https://codecov.io/gh/cmd-stream/handler-go/graph/badge.svg?token=04UEO65CLJ)](https://codecov.io/gh/cmd-stream/handler-go)

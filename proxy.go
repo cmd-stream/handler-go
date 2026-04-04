@@ -11,12 +11,16 @@ import (
 )
 
 // NewProxy creates a new Proxy.
+//
+// Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 func NewProxy[T any](transport dsrv.Transport[T]) Proxy[T] {
 	var flushFlag uint32
 	return Proxy[T]{transport, &flushFlag, &sync.Mutex{}}
 }
 
 // Proxy implemets the core.Proxy interface.
+//
+// Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 type Proxy[T any] struct {
 	transport dsrv.Transport[T]
 	flushFlag *uint32

@@ -1,4 +1,4 @@
-module github.com/cmd-stream/handler-go
+module github.com/cmd-stream/handler-go // Deprecated: use github.com/cmd-stream/cmd-stream-go instead.
 
 go 1.23.0
 
